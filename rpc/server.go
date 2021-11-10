@@ -1,4 +1,4 @@
-package server
+package rpc
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ type server struct {
 	collatzpb.UnimplementedCollatzServiceServer
 }
 
-func Go() error {
+func Server() error {
 	port := viper.GetString("rpc.port")
 	protocol := viper.GetString("rpc.protocol")
 
