@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package collatz;
+option go_package = "/collatzpb";
+
+message SeedRequest { int64 value = 1; }
+
+message SeedResponse { repeated int64 path = 1; }
+
+service CollatzService {
+  rpc Seed(SeedRequest) returns (SeedResponse) {};
+}
