@@ -13,6 +13,7 @@ func Client() (*grpc.ClientConn, error) {
 	address := viper.GetString("rpc.address")
 	tls := viper.GetBool("rpc.tls")
 
+	// options
 	opts := grpc.WithInsecure()
 	if tls {
 		certFile := viper.GetString("ssl.ca")
@@ -24,11 +25,13 @@ func Client() (*grpc.ClientConn, error) {
 		opts = grpc.WithTransportCredentials(creds)
 	}
 
+	// notify
 	security := ""
 	if tls {
 		security = " (TLS)"
 	}
 	timber.Info(fmt.Sprintf("RPC: sending on %s%s", address, security))
 
+	// run
 	return grpc.Dial(address, opts)
 }
