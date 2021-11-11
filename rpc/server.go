@@ -16,18 +16,16 @@ type server struct {
 }
 
 func Server() error {
-	port := viper.GetString("rpc.port")
-	protocol := viper.GetString("rpc.protocol")
+	address := viper.GetString("rpc.address")
+	tls := viper.GetBool("rpc.tls")
 
-	listener, err := net.Listen("tcp", port)
+	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		return fmt.Errorf("RPC: %s", err.Error())
 	}
 
-	timber.Info(fmt.Sprintf("RPC: serving %s on %s", protocol, port))
-
 	opts := []grpc.ServerOption{}
-	if protocol == "HTTPS" {
+	if tls {
 		certFile := viper.GetString("ssl.cert")
 		keyFile := viper.GetString("ssl.key")
 
@@ -41,6 +39,12 @@ func Server() error {
 
 	s := grpc.NewServer(opts...)
 	collatzpb.RegisterCollatzServiceServer(s, &server{})
+
+	security := ""
+	if tls {
+		security = " (TLS)"
+	}
+	timber.Info(fmt.Sprintf("RPC: listening on %s%s", address, security))
 
 	if err := s.Serve(listener); err != nil {
 		return fmt.Errorf("RPC: %s", err.Error())

@@ -10,11 +10,11 @@ import (
 )
 
 func Client() (*grpc.ClientConn, error) {
-	port := viper.GetString("rpc.port")
-	protocol := viper.GetString("rpc.protocol")
+	address := viper.GetString("rpc.address")
+	tls := viper.GetBool("rpc.tls")
 
 	opts := grpc.WithInsecure()
-	if protocol == "HTTPS" {
+	if tls {
 		certFile := viper.GetString("ssl.ca")
 		creds, err := credentials.NewClientTLSFromFile(certFile, "")
 		if err != nil {
@@ -24,7 +24,11 @@ func Client() (*grpc.ClientConn, error) {
 		opts = grpc.WithTransportCredentials(creds)
 	}
 
-	timber.Info(fmt.Sprintf("RPC: sending %s on %s", protocol, port))
+	security := ""
+	if tls {
+		security = " (TLS)"
+	}
+	timber.Info(fmt.Sprintf("RPC: sending on %s%s", address, security))
 
-	return grpc.Dial(port, opts)
+	return grpc.Dial(address, opts)
 }
