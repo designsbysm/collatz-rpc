@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"syscall"
 
 	"github.com/designsbysm/collatzrpc/collatzpb"
 	"github.com/designsbysm/timber/v2"
@@ -25,10 +26,10 @@ func Server() error {
 	// options
 	opts := []grpc.ServerOption{}
 	if tls {
-		certFile := viper.GetString("ssl.cert")
-		keyFile := viper.GetString("ssl.key")
-
-		creds, err := credentials.NewServerTLSFromFile(certFile, keyFile)
+		creds, err := credentials.NewServerTLSFromFile(
+			viper.GetString("ssl.cert"),
+			viper.GetString("ssl.key"),
+		)
 		if err != nil {
 			return fmt.Errorf("RPC: %s", err.Error())
 		}
@@ -61,14 +62,16 @@ func Server() error {
 	if tls {
 		security = " (TLS)"
 	}
+
 	timber.Info(fmt.Sprintf("RPC: listening on %s%s", address, security))
 
 	// wait for ^c
 	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, os.Interrupt)
+	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 	<-ch
 
 	// close
+	fmt.Println("")
 	s.Stop()
 	listener.Close()
 	timber.Info("RPC: closed")
